@@ -1,0 +1,89 @@
+#Excercise 1
+import numpy as np
+
+# Set the random seed for reproducibility
+np.random.seed(42)
+
+# Parameters
+population_size = 1000
+hiv_prevalence = 0.001  # 0.1%
+false_positive_rate = 0.05
+false_negative_rate = 0.0  # perfect sensitivity
+
+# Step 1: Simulate the population
+# 1 if person has HIV, 0 otherwise
+has_hiv = np.random.choice([1, 0], size=population_size, p=[hiv_prevalence, 1 - hiv_prevalence])
+
+# Step 2: Simulate the test results
+test_results = []
+
+for person in has_hiv:
+    if person == 1:
+        # Person has HIV
+        test_result = 1  # Assume 100% sensitivity (no false negatives)
+    else:
+        # Person does not have HIV
+        test_result = np.random.choice([1, 0], p=[false_positive_rate, 1 - false_positive_rate])
+    test_results.append(test_result)
+
+test_results = np.array(test_results)
+
+# Step 3: Analyze the results
+total_positive = np.sum(test_results)
+true_positives = np.sum((test_results == 1) & (has_hiv == 1))
+false_positives = np.sum((test_results == 1) & (has_hiv == 0))
+
+# Positive Predictive Value (PPV)
+if total_positive > 0:
+    ppv = true_positives / total_positive
+else:
+    ppv = 0.0
+
+# Step 4: Print summary
+print("Total people tested:", population_size)
+print("People with HIV (True Positives + False Negatives):", np.sum(has_hiv))
+print("Total Positive Tests:", total_positive)
+print("  True Positives:", true_positives)
+print("  False Positives:", false_positives)
+print(f"\nPositive Predictive Value (P(HIV | Positive Test)) ≈ {ppv:.4f}")
+
+#Exercise 2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+sensitivity = 1.0  # P(D | H) - no false negatives
+false_positive_rate = 0.05  # P(D | ~H)
+
+# Range of priors (infection rates)
+priors = np.arange(0.0, 1.1, 0.1)
+
+# Compute posterior probabilities
+posteriors = []
+
+for prior in priors:
+    P_H = prior
+    P_not_H = 1 - prior
+
+    # Total probability of a positive test
+    P_D = (sensitivity * P_H) + (false_positive_rate * P_not_H)
+
+    # Bayes' Rule
+    if P_D > 0:
+        P_H_given_D = (sensitivity * P_H) / P_D
+    else:
+        P_H_given_D = 0.0
+
+    posteriors.append(P_H_given_D)
+
+# Plotting
+plt.figure(figsize=(8, 5))
+plt.plot(priors, posteriors, marker='o', label='P(HIV | Positive Test)')
+plt.plot(priors, priors, linestyle='--', color='gray', label='P(HIV) = P(HIV | Positive Test) (Perfect Test)')
+plt.title('Bayesian Posterior vs. Prior Infection Rate')
+plt.xlabel('Prior Infection Rate (P(HIV))')
+plt.ylabel('Posterior (P(HIV | Positive Test))')
+plt.grid(True)
+plt.legend()
+plt.ylim(0, 1)
+plt.show()
